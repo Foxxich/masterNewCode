@@ -4,10 +4,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics import accuracy_score
 import numpy as np
 
-import os
-import pandas as pd
-from sklearn.metrics import accuracy_score
-
 class EnsembleBoosting:
     def __init__(self, train_file, test_file, submit_file, max_features=5000):
         # Załaduj dane
@@ -30,10 +26,11 @@ class EnsembleBoosting:
     def save_predictions(self, predictions, output_file):
         # Usuń istniejący plik wynikowy, jeśli istnieje
         if os.path.exists(output_file):
-            os.remove(output_file)
+            os.remove(output_file)  # Usunięcie istniejącego pliku
         self.submit_data['label'] = predictions
         self.submit_data.to_csv(output_file, index=False)
-        print(f"Wyniki zostaly zapisane do: {output_file}")
+        print(f"Wyniki zostaly zapisane do: {output_file}")  # Usuwamy polski znak "ł"
+
 
     def evaluate(self, predictions_file, true_labels_file):
         # Wczytaj pliki

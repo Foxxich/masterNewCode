@@ -11,14 +11,10 @@ class RandomDecisionTreeBoosting(EnsembleBoosting):
         f_test = np.zeros(self.X_test.shape[0])
 
         for b in range(self.B):
-            tree = DecisionTreeRegressor(max_depth=3, random_state=42)
+            # Kontrolowana losowość w zakresie głębokości drzewa
+            max_depth = 3 + np.random.randint(1, 3) if b % 2 == 0 else 3
+            tree = DecisionTreeRegressor(max_depth=max_depth, random_state=42)
             tree.fit(self.X_train, self.y_train)
-
-            # Modyfikowanie losowo reguł podziału w drzewie
-            if b % 2 == 0:
-                tree.set_params(max_depth=tree.get_params()['max_depth'] + 1)
-            else:
-                tree.set_params(max_depth=max(1, tree.get_params()['max_depth'] - 1))
 
             f_test += tree.predict(self.X_test) * (1 / (b + 1))
 
