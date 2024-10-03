@@ -1,6 +1,6 @@
 from ensemble_base import EnsembleBoosting
 from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, BaggingClassifier
 import numpy as np
 
 class RandomDecisionTreeBoosting(EnsembleBoosting):
@@ -14,21 +14,23 @@ class RandomDecisionTreeBoosting(EnsembleBoosting):
         predictions_list = []
         prev_error = float('inf')
 
+        # Bagging Classifier for Logistic Regression and Random Forest
+        bagging_model_lr = BaggingClassifier(estimator=LogisticRegression(max_iter=500, penalty='l2', C=0.01), 
+                                             n_estimators=10, random_state=42, bootstrap=True)
+        bagging_model_rf = BaggingClassifier(estimator=RandomForestClassifier(n_estimators=100, max_depth=5, random_state=42), 
+                                             n_estimators=10, random_state=42, bootstrap=True)
+
         for b in range(self.B):
             # Używamy 60% danych w każdej iteracji
             bootstrap_indices = np.random.choice(self.X_train.shape[0], int(self.X_train.shape[0] * 0.6), replace=True)
             X_train_bootstrap = self.X_train[bootstrap_indices]
             y_train_bootstrap = self.y_train[bootstrap_indices]
 
-            # Regularization in Logistic Regression
+            # Regularization in Logistic Regression with Bagging
             if b % 2 == 0:
-                model = LogisticRegression(max_iter=500, penalty='l2', C=0.01)  # L2 regularization
+                model = bagging_model_lr  # Bagging z Logistic Regression
             else:
-                model = LogisticRegression(max_iter=500, penalty='l1', solver='liblinear', C=0.01)  # L1 regularization
-
-            # Alternatywnie możemy użyć RandomForest, aby uzupełnić modele
-            if b % 4 == 0:
-                model = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=b)
+                model = bagging_model_rf  # Bagging z Random Forest
 
             # Trenujemy model
             model.fit(X_train_bootstrap, y_train_bootstrap)
